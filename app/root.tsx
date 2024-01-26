@@ -46,7 +46,7 @@ export default function App() {
     navigation.location &&
     new URLSearchParams(navigation.location.search).has("q");
   useEffect(() => {
-    setQuery(q);
+    setQuery(q || "");
   }, [q]);
   return (
     <html lang="en">
