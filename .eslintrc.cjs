@@ -70,6 +70,9 @@ module.exports = {
         "plugin:import/recommended",
         "plugin:import/typescript",
       ],
+      rules: {
+        "no-var": "off",
+      },
     },
 
     // Node
