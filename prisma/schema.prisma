@@ -1,0 +1,17 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model remix_user {
+  avatar   String?  @db.VarChar(128)
+  first    String?  @db.VarChar(40)
+  last     String?  @db.VarChar(40)
+  twitter  String?  @db.VarChar(40)
+  id       String   @id(map: "id") @db.VarChar(90)
+  favorite Boolean? @default(false)
+}
