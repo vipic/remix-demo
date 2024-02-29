@@ -3,17 +3,12 @@ import { json, redirect } from "@remix-run/node";
 import { Form, useLoaderData, useNavigate } from "@remix-run/react";
 import invariant from "tiny-invariant";
 
-import { prisma } from "~/prisma.server";
+import { getContact, updateContact } from "~/services";
 
 export const loader = async ({ params }: LoaderFunctionArgs) => {
   invariant(params.contactId, "Missing contactId param");
 
-  const contact = await prisma.remix_user.findUnique({
-    where: {
-      id: params.contactId,
-    },
-  });
-  console.log(contact)
+  const contact = await getContact(params.contactId);
   if (!contact) {
     throw new Response("Not Found", { status: 404 });
   }
@@ -24,15 +19,13 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
   invariant(params.contactId, "missing contactId param");
   const formData = await request.formData();
   const updates = Object.fromEntries(formData);
-  await prisma.remix_user.update({
-    where: { id: params.contactId },
-    data: {
-      first: updates.first,
-      last: updates.last,
-      twitter: updates.twitter,
-      avatar: updates.avatar,
-    },
+  await updateContact(params.contactId, {
+    first: updates.first,
+    last: updates.last,
+    twitter: updates.twitter,
+    avatar: updates.avatar,
   });
+
   return redirect(`/contacts/${params.contactId}`);
 };
 

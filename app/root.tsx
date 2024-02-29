@@ -1,4 +1,4 @@
-import { Key, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { json, redirect, LoaderFunctionArgs } from "@remix-run/node";
 import {
   Form,
@@ -17,7 +17,7 @@ import {
 import type { LinksFunction } from "@remix-run/node";
 
 import appStylesHref from "./app.css";
-import { prisma } from "~/prisma.server";
+import { createContact, queryList } from "~/services";
 
 export const links: LinksFunction = () => {
   return [{ rel: "stylesheet", href: appStylesHref }];
@@ -26,19 +26,13 @@ export const links: LinksFunction = () => {
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const url = new URL(request.url);
   const q = url.searchParams.get("q") || "";
-  const contacts = await prisma.remix_user.findMany({
-    where: {
-      OR: [{ first: { contains: q } }, { last: { contains: q } }],
-    },
-  });
+  const contacts = await queryList(q);
   return json({ contacts, q });
 };
 
 export const action = async () => {
-  const contact = await prisma.remix_user.create({
-    data: {
-      id: Math.random().toString(36).substring(2, 9),
-    },
+  const contact = await createContact({
+    id: Math.random().toString(36).substring(2, 9),
   });
   console.log(contact.id);
   return redirect(`/contacts/${contact.id}/edit`);
@@ -101,32 +95,25 @@ export default function App() {
             <p>{contacts.length} 个人</p>
             {contacts.length ? (
               <ul>
-                {contacts.map(
-                  (contact: {
-                    id: Key | null | undefined;
-                    first: string;
-                    last: string;
-                    favorite: boolean;
-                  }) => (
-                    <li key={contact.id}>
-                      <NavLink
-                        className={({ isActive, isPending }) =>
-                          isActive ? "active" : isPending ? "isPending" : ""
-                        }
-                        to={`contacts/${contact.id}`}
-                      >
-                        {contact.first || contact.last ? (
-                          <>
-                            {contact.first} {contact.last}
-                          </>
-                        ) : (
-                          <i>No Name</i>
-                        )}{" "}
-                        {contact.favorite ? <span>★</span> : null}
-                      </NavLink>
-                    </li>
-                  )
-                )}
+                {contacts.map((contact) => (
+                  <li key={contact.id}>
+                    <NavLink
+                      className={({ isActive, isPending }) =>
+                        isActive ? "active" : isPending ? "isPending" : ""
+                      }
+                      to={`contacts/${contact.id}`}
+                    >
+                      {contact.first || contact.last ? (
+                        <>
+                          {contact.first} {contact.last}
+                        </>
+                      ) : (
+                        <i>No Name</i>
+                      )}{" "}
+                      {contact.favorite ? <span>★</span> : null}
+                    </NavLink>
+                  </li>
+                ))}
               </ul>
             ) : (
               <p>
